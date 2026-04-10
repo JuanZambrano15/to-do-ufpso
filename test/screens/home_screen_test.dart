@@ -4,17 +4,31 @@ import 'package:to_do_ufpso/screens/home_screen.dart';
 
 void main() {
   testWidgets(
+    'HomeScreen muestra un estado vacio y mantiene visible la opcion de crear tarea',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+
+      expect(find.text('Aun no tienes tareas locales'), findsOneWidget);
+      expect(
+        find.text(
+          'Crea tu primera tarea para empezar a organizar tus actividades.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.assignment_outlined), findsOneWidget);
+      expect(find.text('Crear mi primera tarea'), findsOneWidget);
+      expect(find.byType(FloatingActionButton), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'HomeScreen crea una tarea local y valida que el titulo no este vacio',
     (WidgetTester tester) async {
       await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
 
-      expect(find.text('¡Bienvenido a To-Do UFPSO!'), findsOneWidget);
-      expect(
-        find.text('Presiona + para crear tu primera tarea local.'),
-        findsOneWidget,
-      );
+      expect(find.text('Aun no tienes tareas locales'), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.add));
+      await tester.tap(find.byType(FloatingActionButton));
       await tester.pumpAndSettle();
 
       expect(find.text('Crear tarea'), findsOneWidget);

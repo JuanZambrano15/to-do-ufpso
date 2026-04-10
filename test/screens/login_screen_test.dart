@@ -30,7 +30,10 @@ void main() {
     await tester.tap(find.text('Ingresar'));
     await tester.pump();
 
-    expect(find.text('Por favor, ingrese su correo electrónico'), findsOneWidget);
+    expect(
+      find.text('Por favor, ingrese su correo electrónico'),
+      findsOneWidget,
+    );
     expect(find.text('Por favor, ingrese una contraseña'), findsOneWidget);
 
     await tester.enterText(find.byType(TextFormField).first, 'correo_invalido');
@@ -39,7 +42,10 @@ void main() {
     await tester.pump();
 
     expect(find.text('Por favor, ingrese un correo válido'), findsOneWidget);
-    expect(find.text('La contraseña debe tener mínimo 6 caracteres'), findsOneWidget);
+    expect(
+      find.text('La contraseña debe tener mínimo 6 caracteres'),
+      findsOneWidget,
+    );
 
     await tester.enterText(
       find.byType(TextFormField).first,
@@ -55,6 +61,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Mis Tareas'), findsOneWidget);
-    expect(find.text('¡Bienvenido a To-Do UFPSO!'), findsOneWidget);
+    expect(find.text('Aun no tienes tareas locales'), findsOneWidget);
+    expect(find.text('Crear mi primera tarea'), findsOneWidget);
   });
 }

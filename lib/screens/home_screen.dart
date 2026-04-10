@@ -115,29 +115,44 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: _tasks.isEmpty
-              ? const Center(
+              ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        '¡Bienvenido a To-Do UFPSO!',
+                      Container(
+                        width: 112,
+                        height: 112,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.08),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.assignment_outlined,
+                          size: 56,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Aun no tienes tareas locales',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: AppColors.black,
                         ),
+                        textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Organiza tus actividades y pasa tus parciales.',
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Crea tu primera tarea para empezar a organizar tus actividades.',
                         style: TextStyle(color: AppColors.gray),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 16),
-                      Text(
-                        'Presiona + para crear tu primera tarea local.',
-                        style: TextStyle(color: AppColors.gray),
-                        textAlign: TextAlign.center,
+                      const SizedBox(height: 20),
+                      OutlinedButton.icon(
+                        onPressed: _showCreateTaskDialog,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Crear mi primera tarea'),
                       ),
                     ],
                   ),
