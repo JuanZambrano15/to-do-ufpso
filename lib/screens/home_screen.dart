@@ -97,6 +97,12 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.of(dialogContext).pop();
   }
 
+  void _toggleTaskStatus(Task task) {
+    setState(() {
+      task.toggleCompleted();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -183,6 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                           return Card(
                             child: ListTile(
+                              onTap: () => _toggleTaskStatus(task),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 8,
@@ -197,12 +204,31 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               title: Text(
                                 task.title,
-                                style: const TextStyle(
-                                  color: AppColors.black,
+                                style: TextStyle(
+                                  color: task.isCompleted
+                                      ? AppColors.gray
+                                      : AppColors.black,
                                   fontWeight: FontWeight.w600,
+                                  decoration: task.isCompleted
+                                      ? TextDecoration.lineThrough
+                                      : TextDecoration.none,
                                 ),
                               ),
-                              subtitle: const Text('Tarea guardada localmente'),
+                              subtitle: Text(
+                                task.isCompleted
+                                    ? 'Tarea completada'
+                                    : 'Tarea pendiente',
+                              ),
+                              trailing: IconButton(
+                                key: Key('toggle_task_${task.id}'),
+                                onPressed: () => _toggleTaskStatus(task),
+                                icon: Icon(
+                                  task.isCompleted ? Icons.undo : Icons.check,
+                                ),
+                                tooltip: task.isCompleted
+                                    ? 'Marcar como pendiente'
+                                    : 'Marcar como completada',
+                              ),
                             ),
                           );
                         },
