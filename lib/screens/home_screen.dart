@@ -1,8 +1,101 @@
 import 'package:flutter/material.dart';
+import 'package:to_do_ufpso/models/task.dart';
 import 'package:to_do_ufpso/utils/app_theme.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final List<Task> _tasks = [];
+
+  Future<void> _showCreateTaskDialog() async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        String? errorText;
+        String taskTitle = '';
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Crear tarea'),
+              content: TextFormField(
+                key: const Key('task_title_field'),
+                autofocus: true,
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                  labelText: 'Titulo de la tarea',
+                  hintText: 'Ej. Estudiar para calculo',
+                  errorText: errorText,
+                ),
+                onChanged: (value) {
+                  taskTitle = value;
+                  if (errorText != null) {
+                    setDialogState(() {
+                      errorText = null;
+                    });
+                  }
+                },
+                onFieldSubmitted: (_) => _createTask(
+                  dialogContext: dialogContext,
+                  title: taskTitle,
+                  setDialogState: setDialogState,
+                  setErrorText: (value) => errorText = value,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _createTask(
+                    dialogContext: dialogContext,
+                    title: taskTitle,
+                    setDialogState: setDialogState,
+                    setErrorText: (value) => errorText = value,
+                  ),
+                  child: const Text('Crear'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _createTask({
+    required BuildContext dialogContext,
+    required String title,
+    required void Function(void Function()) setDialogState,
+    required void Function(String?) setErrorText,
+  }) {
+    final trimmedTitle = title.trim();
+
+    if (trimmedTitle.isEmpty) {
+      setDialogState(() {
+        setErrorText('Ingresa un titulo para crear la tarea');
+      });
+      return;
+    }
+
+    setState(() {
+      _tasks.insert(
+        0,
+        Task(
+          id: DateTime.now().microsecondsSinceEpoch.toString(),
+          title: trimmedTitle,
+        ),
+      );
+    });
+
+    Navigator.of(dialogContext).pop();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,30 +111,94 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text(
-              '¡Bienvenido a To-Do UFPSO!',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.black,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Organiza tus actividades y pasa tus parciales.',
-              style: TextStyle(color: AppColors.gray),
-            ),
-          ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: _tasks.isEmpty
+              ? const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '¡Bienvenido a To-Do UFPSO!',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.black,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Organiza tus actividades y pasa tus parciales.',
+                        style: TextStyle(color: AppColors.gray),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Presiona + para crear tu primera tarea local.',
+                        style: TextStyle(color: AppColors.gray),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Tus tareas locales',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Crea tareas rapidas para organizar tus actividades.',
+                      style: TextStyle(color: AppColors.gray),
+                    ),
+                    const SizedBox(height: 20),
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: _tasks.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final task = _tasks[index];
+
+                          return Card(
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              leading: Icon(
+                                task.isCompleted
+                                    ? Icons.check_circle
+                                    : Icons.radio_button_unchecked,
+                                color: task.isCompleted
+                                    ? Colors.green
+                                    : AppColors.primary,
+                              ),
+                              title: Text(
+                                task.title,
+                                style: const TextStyle(
+                                  color: AppColors.black,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              subtitle: const Text('Tarea guardada localmente'),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Implementar creación de tareas
-        },
+        onPressed: _showCreateTaskDialog,
         child: const Icon(Icons.add),
       ),
     );
