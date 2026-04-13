@@ -5,9 +5,9 @@ import 'package:to_do_ufpso/services/auth_service.dart';
 
 class FirebaseAuthService implements AuthService {
   FirebaseAuthService({FirebaseAuth? firebaseAuth})
-    : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
+    : _firebaseAuth = firebaseAuth;
 
-  final FirebaseAuth _firebaseAuth;
+  final FirebaseAuth? _firebaseAuth;
 
   @override
   Future<void> register({
@@ -15,7 +15,7 @@ class FirebaseAuthService implements AuthService {
     required String password,
   }) async {
     await _runWithInitialization(
-      action: () => _firebaseAuth.createUserWithEmailAndPassword(
+      action: () => _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       ),
@@ -27,10 +27,8 @@ class FirebaseAuthService implements AuthService {
   @override
   Future<void> login({required String email, required String password}) async {
     await _runWithInitialization(
-      action: () => _firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      ),
+      action: () =>
+          _auth.signInWithEmailAndPassword(email: email, password: password),
       fallbackMessage:
           'Ocurrio un error inesperado al iniciar sesion. Intenta nuevamente.',
     );
@@ -54,6 +52,8 @@ class FirebaseAuthService implements AuthService {
       throw AuthFailure(fallbackMessage);
     }
   }
+
+  FirebaseAuth get _auth => _firebaseAuth ?? FirebaseAuth.instance;
 
   Future<void> _ensureFirebaseInitialized() async {
     if (Firebase.apps.isNotEmpty) {
