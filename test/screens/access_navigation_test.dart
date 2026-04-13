@@ -3,16 +3,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:to_do_ufpso/screens/home_screen.dart';
 import 'package:to_do_ufpso/screens/login_screen.dart';
 import 'package:to_do_ufpso/screens/register_screen.dart';
+import 'package:to_do_ufpso/services/auth_service.dart';
 
 void main() {
   testWidgets('HU-03 permite navegar entre login, registro y home', (
     WidgetTester tester,
   ) async {
+    final fakeAuthService = _FakeAuthService();
+
     await tester.pumpWidget(
       MaterialApp(
         initialRoute: '/login',
         routes: {
-          '/login': (context) => const LoginScreen(),
+          '/login': (context) => LoginScreen(authService: fakeAuthService),
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const HomeScreen(),
         },
@@ -39,7 +42,6 @@ void main() {
     await tester.enterText(find.byType(TextFormField).last, '123456');
     await tester.tap(find.text('Ingresar'));
     await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
 
     expect(find.text('Mis Tareas'), findsOneWidget);
@@ -49,4 +51,17 @@ void main() {
 
     expect(find.text('Iniciar Sesion'), findsOneWidget);
   });
+}
+
+class _FakeAuthService implements AuthService {
+  @override
+  Future<void> login({required String email, required String password}) async {
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
+
+  @override
+  Future<void> register({
+    required String email,
+    required String password,
+  }) async {}
 }

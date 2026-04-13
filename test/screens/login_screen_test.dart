@@ -3,20 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:to_do_ufpso/screens/home_screen.dart';
 import 'package:to_do_ufpso/screens/login_screen.dart';
+import 'package:to_do_ufpso/services/auth_service.dart';
 
 void main() {
-  testWidgets('LoginScreen valida campos, muestra loading y navega a home', (
+  testWidgets('LoginScreen valida campos vacios e invalidos', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        initialRoute: '/login',
-        routes: {
-          '/login': (context) => LoginScreen(),
-          '/home': (context) => HomeScreen(),
-        },
-      ),
-    );
+    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
 
     expect(find.text('Iniciar Sesion'), findsOneWidget);
     expect(find.byType(TextFormField), findsNWidgets(2));
@@ -46,22 +39,95 @@ void main() {
       find.text('La contraseña debe tener mínimo 6 caracteres'),
       findsOneWidget,
     );
-
-    await tester.enterText(
-      find.byType(TextFormField).first,
-      'estudiante@ufpso.edu.co',
-    );
-    await tester.enterText(find.byType(TextFormField).last, '123456');
-    await tester.tap(find.text('Ingresar'));
-    await tester.pump();
-
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Mis Tareas'), findsOneWidget);
-    expect(find.text('Aun no tienes tareas locales'), findsOneWidget);
-    expect(find.text('Crear mi primera tarea'), findsOneWidget);
   });
+
+  testWidgets(
+    'LoginScreen inicia sesion y navega a home con credenciales validas',
+    (WidgetTester tester) async {
+      final fakeAuthService = _FakeAuthService();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          initialRoute: '/login',
+          routes: {
+            '/login': (context) => LoginScreen(authService: fakeAuthService),
+            '/home': (context) => const HomeScreen(),
+          },
+        ),
+      );
+
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'estudiante@ufpso.edu.co',
+      );
+      await tester.enterText(find.byType(TextFormField).last, '123456');
+      await tester.tap(find.text('Ingresar'));
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      await tester.pumpAndSettle();
+
+      expect(fakeAuthService.lastEmail, 'estudiante@ufpso.edu.co');
+      expect(fakeAuthService.lastPassword, '123456');
+      expect(find.text('Mis Tareas'), findsOneWidget);
+      expect(find.text('Aun no tienes tareas locales'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'LoginScreen muestra un mensaje entendible si las credenciales son incorrectas',
+    (WidgetTester tester) async {
+      final fakeAuthService = _FakeAuthService(
+        error: const AuthFailure(
+          'Las credenciales ingresadas no son correctas.',
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: LoginScreen(authService: fakeAuthService)),
+      );
+
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'estudiante@ufpso.edu.co',
+      );
+      await tester.enterText(find.byType(TextFormField).last, '123456');
+      await tester.tap(find.text('Ingresar'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Las credenciales ingresadas no son correctas.'),
+        findsOneWidget,
+      );
+      expect(find.text('Iniciar Sesion'), findsOneWidget);
+    },
+  );
+}
+
+class _FakeAuthService implements AuthService {
+  _FakeAuthService({this.error});
+
+  final AuthFailure? error;
+  String? lastEmail;
+  String? lastPassword;
+
+  @override
+  Future<void> login({required String email, required String password}) async {
+    lastEmail = email;
+    lastPassword = password;
+
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+
+    if (error != null) {
+      throw error!;
+    }
+  }
+
+  @override
+  Future<void> register({
+    required String email,
+    required String password,
+  }) async {}
 }

@@ -18,6 +18,11 @@ class _DefaultAuthService implements AuthService {
   const _DefaultAuthService();
 
   @override
+  Future<void> login({required String email, required String password}) {
+    return FirebaseAuthService().login(email: email, password: password);
+  }
+
+  @override
   Future<void> register({required String email, required String password}) {
     return FirebaseAuthService().register(email: email, password: password);
   }

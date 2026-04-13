@@ -108,6 +108,9 @@ class _FakeAuthService implements AuthService {
   String? lastPassword;
 
   @override
+  Future<void> login({required String email, required String password}) async {}
+
+  @override
   Future<void> register({
     required String email,
     required String password,

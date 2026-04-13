@@ -1,13 +1,32 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:to_do_ufpso/services/auth_service.dart';
+import 'package:to_do_ufpso/services/firebase_auth_service.dart';
 import 'package:to_do_ufpso/utils/app_theme.dart';
 import 'package:to_do_ufpso/utils/validators.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, AuthService? authService})
+    : authService = authService ?? const _DefaultAuthService();
+
+  final AuthService authService;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _DefaultAuthService implements AuthService {
+  const _DefaultAuthService();
+
+  @override
+  Future<void> login({required String email, required String password}) {
+    return FirebaseAuthService().login(email: email, password: password);
+  }
+
+  @override
+  Future<void> register({required String email, required String password}) {
+    return FirebaseAuthService().register(email: email, password: password);
+  }
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -34,17 +53,34 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      await widget.authService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
 
-    if (!mounted) {
-      return;
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pushReplacementNamed('/home');
+    } on AuthFailure catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
     }
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    Navigator.of(context).pushReplacementNamed('/home');
   }
 
   Widget _buildSocialButton({
@@ -60,11 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
           shape: const CircleBorder(),
           padding: EdgeInsets.zero,
         ),
-        child: Semantics(
-          label: semanticLabel,
-          button: true,
-          child: icon,
-        ),
+        child: Semantics(label: semanticLabel, button: true, child: icon),
       ),
     );
   }
@@ -72,9 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Iniciar Sesion'),
-      ),
+      appBar: AppBar(title: const Text('Iniciar Sesion')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

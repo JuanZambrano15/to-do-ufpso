@@ -14,13 +14,36 @@ class FirebaseAuthService implements AuthService {
     required String email,
     required String password,
   }) async {
+    await _runWithInitialization(
+      action: () => _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      ),
+      fallbackMessage:
+          'Ocurrio un error inesperado al crear la cuenta. Intenta nuevamente.',
+    );
+  }
+
+  @override
+  Future<void> login({required String email, required String password}) async {
+    await _runWithInitialization(
+      action: () => _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      ),
+      fallbackMessage:
+          'Ocurrio un error inesperado al iniciar sesion. Intenta nuevamente.',
+    );
+  }
+
+  Future<void> _runWithInitialization({
+    required Future<void> Function() action,
+    required String fallbackMessage,
+  }) async {
     await _ensureFirebaseInitialized();
 
     try {
-      await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      await action();
     } on FirebaseAuthException catch (error) {
       throw AuthFailure(_mapFirebaseError(error));
     } on FirebaseException {
@@ -28,9 +51,7 @@ class FirebaseAuthService implements AuthService {
         'No fue posible conectar con Firebase. Revisa la configuracion del proyecto.',
       );
     } catch (_) {
-      throw const AuthFailure(
-        'Ocurrio un error inesperado al crear la cuenta. Intenta nuevamente.',
-      );
+      throw AuthFailure(fallbackMessage);
     }
   }
 
@@ -75,8 +96,14 @@ class FirebaseAuthService implements AuthService {
         return 'No fue posible conectarse a internet. Verifica tu conexion.';
       case 'operation-not-allowed':
         return 'El registro con correo y contrasena no esta habilitado en Firebase.';
+      case 'user-not-found':
+      case 'wrong-password':
+      case 'invalid-credential':
+        return 'Las credenciales ingresadas no son correctas.';
+      case 'user-disabled':
+        return 'Esta cuenta fue deshabilitada. Contacta al administrador.';
       default:
-        return 'No se pudo crear la cuenta. Intenta nuevamente.';
+        return 'No se pudo completar la autenticacion. Intenta nuevamente.';
     }
   }
 }
