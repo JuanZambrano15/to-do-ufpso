@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1018811833050",
+    "project_id": "to-do-ufpso",
+    "storage_bucket": "to-do-ufpso.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1018811833050:android:d47e5489e8bfeba304a3e3",
+        "android_client_info": {
+          "package_name": "com.example.to_do_ufpso"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChOlEVDOv3t4ZDvlITIlcXU-5-fQn5SUA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
